@@ -31,8 +31,8 @@ if __name__ == '__main__':
         "If True, the memory used by the synthesizer will be freed after each use. Adds large "
         "overhead but allows to save some GPU memory for lower-end GPUs.")
     parser.add_argument("--no_sound", action="store_true", help=\
-        "If True, audio won't be played.")
-    parser.add_argument("--seed", type=int, default=None, help=\
+        "If True, audio won't be played.", default=True)
+    parser.add_argument("--seed", type=int, default=1, help=\
         "Optional random number seed value to make toolbox deterministic.")
     parser.add_argument("--no_mp3_support", action="store_true", help=\
         "If True, disallows loading mp3 files to prevent audioread errors when ffmpeg is not installed.")
@@ -133,7 +133,9 @@ if __name__ == '__main__':
             # Get the reference audio filepath
             message = "Reference voice: enter an audio filepath of a voice to be cloned (mp3, " \
                       "wav, m4a, flac, ...):\n"
-            in_fpath = Path(input(message).replace("\"", "").replace("\'", ""))
+            raw_in_fpath = input(message)
+            if raw_in_fpath:
+            	in_fpath = Path(raw_in_fpath.replace("\"", "").replace("\'", ""))
 
             if in_fpath.suffix.lower() == ".mp3" and args.no_mp3_support:
                 print("Can't Use mp3 files please try again:")
