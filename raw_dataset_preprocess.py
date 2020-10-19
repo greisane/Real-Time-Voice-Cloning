@@ -139,8 +139,6 @@ if __name__ == '__main__':
     )
     parser.add_argument("datasets_root", type=Path, help=\
         "Path to the directory containing your LibriSpeech/TTS datasets.")
-    parser.add_argument("datasets_name", type=str, help=\
-        "Name of the dataset directory to process.")
     parser.add_argument("-f", "--file_pattern", type=str, default=r"Sample (?P<name>\d+)", help=\
         "Pattern that raw audio filenames must match. If available, capture group 'name' is used "
         "as the new filename.")
@@ -149,6 +147,8 @@ if __name__ == '__main__':
     parser.add_argument("-o", "--out_dir", type=Path, default=argparse.SUPPRESS, help=\
         "Path to the output directory that will contain the mel spectrograms, the audios and the "
         "embeds. Defaults to <datasets_root>/<datasets_name>/train-clean/")
+    parser.add_argument("--datasets_name", type=str, help=\
+        "Name of the dataset directory to process.")
     parser.add_argument("--hparams", type=str, default="", help=\
         "Hyperparameter overrides as a comma-separated list of name-value pairs")
     parser.add_argument("--deepspeech_model", type=Path, default=Path("deepspeech-0.8.1-models.pbmm"),
