@@ -82,12 +82,12 @@ def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool, hparams,
                         text = text.strip()
 
                     # Process the utterance
-                    wav_name, mel_name, embed_name = process_utterance(wav, text, out_dir,
-                        str(wav_fpath.with_suffix("").name), skip_existing, hparams)
+                    wav_name, mel_name, embed_name, length, mel_frames, text = process_utterance(
+                        wav, text, out_dir, str(wav_fpath.with_suffix("").name), skip_existing, hparams)
                     if force_single_embed:
                         embed_name = forced_embed_name or embed_name
                         forced_embed_name = embed_name
-                    metadata.append((wav_name, mel_name, embed_name))
+                    metadata.append((wav_name, mel_name, embed_name, length, mel_frames, text))
         else:
             # Process alignment file (LibriSpeech support)
             # Gather the utterance audios and texts
@@ -110,12 +110,12 @@ def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool, hparams,
                 wavs, texts = split_on_silences(wav_fpath, words, end_times, hparams)
                 for i, (wav, text) in enumerate(zip(wavs, texts)):
                     sub_basename = "%s_%02d" % (wav_fname, i)
-                    wav_name, mel_name, embed_name = process_utterance(wav, text, out_dir,
-                        sub_basename, skip_existing, hparams)
+                    wav_name, mel_name, embed_name, length, mel_frames, text = process_utterance(
+                        wav, text, out_dir, sub_basename, skip_existing, hparams)
                     if force_single_embed:
                         embed_name = forced_embed_name or embed_name
                         forced_embed_name = embed_name
-                    metadata.append((wav_name, mel_name, embed_name))
+                    metadata.append((wav_name, mel_name, embed_name, length, mel_frames, text))
 
     return [m for m in metadata if m is not None]
 
