@@ -227,7 +227,7 @@ def process_utterance(wav: np.ndarray, text: str, out_dir: Path, basename: str,
     np.save(wav_fpath, wav, allow_pickle=False)
 
     # Return a tuple describing this training example
-    return wav_fpath.name, mel_fpath.name, "embed-%s.npy" % basename, len(wav), mel_frames, text
+    return [wav_fpath.name, mel_fpath.name, "embed-%s.npy" % basename, len(wav), mel_frames, text]
 
 
 def embed_utterance(fpaths, encoder_model_fpath):
