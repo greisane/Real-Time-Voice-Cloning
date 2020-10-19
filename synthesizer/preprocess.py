@@ -85,8 +85,8 @@ def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool, hparams,
                     subname = str(wav_fpath.with_suffix("").name)
                     result = process_utterance(wav, text, out_dir, subname, skip_existing, hparams)
                     if result is not None and force_single_embed:
-                        forced_embed_name = result[2] = forced_embed_name or embed_name
-                    metadata.append((wav_name, mel_name, embed_name, length, mel_frames, subtext))
+                        forced_embed_name = result[2] = forced_embed_name or result[2]
+                    metadata.append(result)
         else:
             # Process alignment file (LibriSpeech support)
             # Gather the utterance audios and texts
@@ -111,8 +111,8 @@ def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool, hparams,
                     subname = "%s_%02d" % (wav_fname, i)
                     result = process_utterance(wav, text, out_dir, subname, skip_existing, hparams)
                     if result is not None and force_single_embed:
-                        forced_embed_name = result[2] = forced_embed_name or embed_name
-                    metadata.append((wav_name, mel_name, embed_name, length, mel_frames, subtext))
+                        forced_embed_name = result[2] = forced_embed_name or result[2]
+                    metadata.append(result)
 
     return [m for m in metadata if m is not None]
 
