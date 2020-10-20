@@ -139,7 +139,7 @@ if __name__ == '__main__':
     )
     parser.add_argument("datasets_root", type=Path, help=\
         "Path to the directory containing your LibriSpeech/TTS datasets.")
-    parser.add_argument("-f", "--file_pattern", type=str, default=r"Sample (?P<name>\d+)", help=\
+    parser.add_argument("-f", "--file_pattern", type=str, default=r"Sample[ _](?P<name>\d+)", help=\
         "Pattern that raw audio filenames must match. If available, capture group 'name' is used "
         "as the new filename.")
     parser.add_argument("-a", "--aggressiveness", type=int, default=3, help=\
