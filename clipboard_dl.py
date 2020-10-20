@@ -7,7 +7,7 @@ import requests
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Downloads files found in a HTTP archive (HAR) in clipboard, obtained from "
-            "Firefox's network tool or your browser equivalent.",
+            "Firefox's network tool or your browser's equivalent.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument("out_dir", type=Path, help=\
@@ -19,16 +19,16 @@ if __name__ == "__main__":
         j = json.loads(pyperclip.paste())
     except:
         j = None
-        print("Couldn't decode clipboard.")
+        print("Couldn't decode clipboard data.")
 
     try:
         urls = [entry['request']['url'] for entry in j['log']['entries']]
     except:
         urls = []
-        print("Couldn't collect urls.")
+    print(f"Collected {len(urls)} urls.")
 
-    for url in urls:
-        out_path = args.out_dir / Path(url).name
+    for url_idx, url in enumerate(urls):
+        out_path = args.out_dir / Path(url).name  # Probably not the best way to do this
         if out_path.exists():
             print(f"Skipping {url}, file already exists.")
         else:
