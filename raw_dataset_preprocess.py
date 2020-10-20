@@ -243,10 +243,10 @@ if __name__ == '__main__':
             if args.single_transcript:
                 print(f'{out_path.name} {" ".join(words)}', file=trans_fout)
                 print(f'{out_path.name} "{",".join(words)}" "{",".join(timestamps)}"', file=align_fout)
-                print(f'{out_path.name}: {" ".join(words)}')
             else:
                 with open(out_path.with_suffix(".txt"), 'w') as fout:
                     print(f'{" ".join(words)}.', file=fout)
+            print(f'{out_path.name}: {" ".join(words)}')
 
     # Clean up
     if args.single_transcript:
