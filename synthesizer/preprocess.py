@@ -10,9 +10,8 @@ import numpy as np
 import librosa
 
 
-def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int,
-    skip_existing: bool, hparams, no_alignments: bool, force_single_embed:bool,
-    datasets_name: str, subfolders: str):
+def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int, skip_existing: bool,
+    hparams, no_alignments: bool, force_embed: str, datasets_name: str, subfolders: str):
     # Gather the input directories
     dataset_root = datasets_root.joinpath(datasets_name)
     input_dirs = [dataset_root.joinpath(subfolder.strip()) for subfolder in subfolders.split(",")]
@@ -30,7 +29,7 @@ def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int,
     # Preprocess the dataset
     speaker_dirs = list(chain.from_iterable(input_dir.glob("*") for input_dir in input_dirs))
     func = partial(preprocess_speaker, out_dir=out_dir, skip_existing=skip_existing,
-                   hparams=hparams, no_alignments=no_alignments, force_single_embed=force_single_embed)
+                   hparams=hparams, no_alignments=no_alignments, force_embed=force_embed)
     job = Pool(n_processes).imap(func, speaker_dirs)
     for speaker_metadata in tqdm(job, datasets_name, len(speaker_dirs), unit="speakers"):
         for metadatum in speaker_metadata:
@@ -52,9 +51,8 @@ def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int,
 
 
 def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool, hparams, no_alignments: bool,
-    force_single_embed: bool):
+    force_embed: str):
     metadata = []
-    forced_embed_name = None
     for book_dir in speaker_dir.glob("*"):
         if no_alignments:
             # Gather the utterance audios and texts
@@ -84,8 +82,8 @@ def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool, hparams,
                     # Process the utterance
                     subname = str(wav_fpath.with_suffix("").name)
                     result = process_utterance(wav, text, out_dir, subname, skip_existing, hparams)
-                    if result is not None and force_single_embed:
-                        forced_embed_name = result[2] = forced_embed_name or result[2]
+                    if result is not None and force_embed is not None:
+                        force_embed = result[2] = force_embed or result[2]
                     metadata.append(result)
         else:
             # Process alignment file (LibriSpeech support)
@@ -110,8 +108,8 @@ def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool, hparams,
                 for i, (wav, text) in enumerate(zip(wavs, texts)):
                     subname = "%s_%02d" % (wav_fname, i)
                     result = process_utterance(wav, text, out_dir, subname, skip_existing, hparams)
-                    if result is not None and force_single_embed:
-                        forced_embed_name = result[2] = forced_embed_name or result[2]
+                    if result is not None and force_embed is not None:
+                        force_embed = result[2] = force_embed or result[2]
                     metadata.append(result)
 
     return [m for m in metadata if m is not None]
