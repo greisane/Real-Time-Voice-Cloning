@@ -209,9 +209,14 @@ if __name__ == '__main__':
             sample_rate = hparams.sample_rate
         y = float2pcm(y)
 
-        # Split audio by silences
-        frames = list(frame_generator(y.tobytes(), sample_rate, frame_duration=30))
-        segments = vad_collector(vad, frames, sample_rate, frame_duration=30, padding_duration=300)
+        if args.aggressiveness > 0:
+            # Split audio by silences
+            frames = list(frame_generator(y.tobytes(), sample_rate, frame_duration=30))
+            segments = vad_collector(vad, frames, sample_rate, frame_duration=30, padding_duration=300)
+        else:
+            # Whole file
+            segments = [y.tobytes()]
+
         for segment_idx, segment_data in enumerate(segments):
             # Add some silence at the start, otherwise DeepSpeech will miss some words
             segment = np.frombuffer(segment_data, dtype=np.int16)
