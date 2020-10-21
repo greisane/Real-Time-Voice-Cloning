@@ -250,16 +250,16 @@ if __name__ == '__main__':
 
             # Save segment audio and transcript
             out_path = args.out_dir / f"{name}-{segment_num:04d}.wav"
-            name = out_path.with_suffix("").name
+            filename = out_path.with_suffix("").name
             soundfile.write(str(out_path), segment, sample_rate)
             if args.single_transcript:
                 uwords = [word.upper() for word in words]
-                print(f'{name} {" ".join(uwords)}', file=trans_fout)
-                print(f'{name} "{",".join(uwords)}" "{",".join(timestamps)}"', file=align_fout)
+                print(f'{filename} {" ".join(uwords)}', file=trans_fout)
+                print(f'{filename} "{",".join(uwords)}" "{",".join(timestamps)}"', file=align_fout)
             else:
                 with open(out_path.with_suffix(".txt"), 'w') as fout:
                     print(f'{" ".join(words)}.', file=fout)
-            print(f'{name}: {" ".join(words)} ({duration:.3f})')
+            print(f'{filename}: {" ".join(words)} ({duration:.3f})')
             segment_num += 1
 
     # Clean up
