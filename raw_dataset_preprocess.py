@@ -143,10 +143,14 @@ if __name__ == '__main__':
         "Pattern that raw audio filenames must match. If available, capture group 'name' is used "
         "as the new filename.")
     parser.add_argument("-a", "--aggressiveness", type=int, default=3, help=\
-        "Aggressiveness of silence detection for input audio chunking.")
+        "Aggressiveness of silence detection for input audio segmenting.")
     parser.add_argument("-o", "--out_dir", type=Path, default=argparse.SUPPRESS, help=\
         "Path to the output directory that will contain the mel spectrograms, the audios and the "
         "embeds. Defaults to <datasets_root>/<datasets_name>/train-clean/")
+    parser.add_argument("--min_words", type=int, default=0, help=\
+        "Drop segments with less than this many words.")
+    parser.add_argument("--min_duration", type=float, default=0.0, help=\
+        "Drop segments shorter than this duration in seconds.")
     parser.add_argument("--datasets_name", type=str, help=\
         "Name of the dataset directory to process.")
     parser.add_argument("--hparams", type=str, default="", help=\
@@ -203,7 +207,6 @@ if __name__ == '__main__':
         print(f"Processing {path}")
 
         y, sample_rate = librosa.load(path, sr=None, mono=True)
-        duration = librosa.get_duration(y, sr=sample_rate)
         if sample_rate != hparams.sample_rate:
             y = librosa.resample(y, sample_rate, hparams.sample_rate)
             sample_rate = hparams.sample_rate
@@ -217,18 +220,13 @@ if __name__ == '__main__':
             # Whole file
             segments = [y.tobytes()]
 
-        for segment_idx, segment_data in enumerate(segments):
+        segment_num = 0
+        for segment_data in segments:
             # Add some silence at the start, otherwise DeepSpeech will miss some words
             segment = np.frombuffer(segment_data, dtype=np.int16)
             segment = np.concatenate((np.zeros(8000, dtype=np.int16), segment))
 
             transcript = ds.sttWithMetadata(segment, 1).transcripts[0]
-
-            # Save segment audio
-            out_path = args.out_dir / f"{name}-{segment_idx:04d}"
-            soundfile.write(str(out_path.with_suffix(".wav")), segment, hparams.sample_rate)
-
-            # Save transcript
             word = ""
             words, timestamps = [], []
             for token_idx, token in enumerate(transcript.tokens):
@@ -240,18 +238,28 @@ if __name__ == '__main__':
                     word = word + token.text
                 # Word boundary is either a space or the last character in the array
                 if token.text.isspace() or token_idx == len(transcript.tokens) - 1:
-                    # words.append(word.upper())
                     words.append(word)
                     timestamps.append(f"{word_start_time:.3f}")
                     word, word_start_time = "", 0.0  # Reset
 
+            duration = librosa.get_duration(segment, sr=sample_rate)
+            if len(words) < args.min_words or duration < args.min_duration:
+                print(f'SKIP: {" ".join(words)} ({duration:.3f})')
+                continue
+
+            # Save segment audio and transcript
+            out_path = args.out_dir / f"{name}-{segment_num:04d}.wav"
+            name = out_path.with_suffix("").name
+            soundfile.write(str(out_path), segment, sample_rate)
             if args.single_transcript:
-                print(f'{out_path.name} {" ".join(words)}', file=trans_fout)
-                print(f'{out_path.name} "{",".join(words)}" "{",".join(timestamps)}"', file=align_fout)
+                uwords = [word.upper() for word in words]
+                print(f'{name} {" ".join(uwords)}', file=trans_fout)
+                print(f'{name} "{",".join(uwords)}" "{",".join(timestamps)}"', file=align_fout)
             else:
                 with open(out_path.with_suffix(".txt"), 'w') as fout:
                     print(f'{" ".join(words)}.', file=fout)
-            print(f'{out_path.name}: {" ".join(words)}')
+            print(f'{name}: {" ".join(words)} ({duration:.3f})')
+            segment_num += 1
 
     # Clean up
     if args.single_transcript:
