@@ -242,7 +242,8 @@ if __name__ == '__main__':
                     timestamps.append(f"{word_start_time:.3f}")
                     word, word_start_time = "", 0.0  # Reset
 
-            duration = librosa.get_duration(segment, sr=sample_rate)
+            n_samples = len(segment)
+            duration = float(n_samples) / sample_rate
             if len(words) < args.min_words or duration < args.min_duration:
                 print(f'SKIP: {" ".join(words)} ({duration:.3f})')
                 continue
