@@ -245,7 +245,7 @@ if __name__ == '__main__':
             n_samples = len(segment)
             duration = float(n_samples) / sample_rate
             if len(words) < args.min_words or duration < args.min_duration:
-                print(f'SKIP: {" ".join(words)} ({duration:.3f})')
+                print(f'SKIP: {" ".join(words)} ({duration:.3f}s)')
                 continue
 
             # Save segment audio and transcript
@@ -259,7 +259,7 @@ if __name__ == '__main__':
             else:
                 with open(out_path.with_suffix(".txt"), 'w') as fout:
                     print(f'{" ".join(words)}.', file=fout)
-            print(f'{filename}: {" ".join(words)} ({duration:.3f})')
+            print(f'{filename}: {" ".join(words)} ({duration:.3f}s)')
             segment_num += 1
 
     # Clean up
