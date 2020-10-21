@@ -10,6 +10,20 @@ import re
 import soundfile
 import webrtcvad
 
+try:
+    import readline
+    def rlinput(prompt, prefill=''):
+        # From https://stackoverflow.com/a/36607077
+        readline.set_startup_hook(lambda: readline.insert_text(prefill))
+        try:
+            return input(prompt)
+        finally:
+            readline.set_startup_hook()
+except ImportError:
+    # pyreadline perhaps?
+    def rlinput(prompt, prefill=''):
+        return input(prompt)
+
 def float2pcm(sig, dtype='int16'):
     """Convert floating point signal with a range from -1 to 1 to PCM.
     Any signal values outside the interval [-1.0, 1.0) are clipped.
@@ -144,6 +158,8 @@ if __name__ == '__main__':
         "as the new filename.")
     parser.add_argument("-a", "--aggressiveness", type=int, default=3, help=\
         "Aggressiveness of silence detection for input audio segmenting.")
+    parser.add_argument("-i", "--interactive", action="store_true", help= \
+        "Allow the user to correct transcripts. Incompatible with --single_transcript")
     parser.add_argument("-o", "--out_dir", type=Path, default=argparse.SUPPRESS, help=\
         "Path to the output directory that will contain the mel spectrograms, the audios and the "
         "embeds. Defaults to <datasets_root>/<datasets_name>/train-clean/")
@@ -163,6 +179,7 @@ if __name__ == '__main__':
 
     # Process the arguments
     assert args.deepspeech_model.exists()
+    assert not args.interactive or not args.single_transcript
     if not hasattr(args, 'out_dir'):
         args.out_dir = args.datasets_root / args.datasets_name / "train-clean"
     in_dirpath = args.datasets_root / args.datasets_name
@@ -241,6 +258,10 @@ if __name__ == '__main__':
                     words.append(word)
                     timestamps.append(f"{word_start_time:.3f}")
                     word, word_start_time = "", 0.0  # Reset
+
+            if args.interactive:
+                new_text = rlinput(f"{name}: ", prefill=" ".join(words))
+                words = new_text.split()
 
             n_samples = len(segment)
             duration = float(n_samples) / sample_rate
